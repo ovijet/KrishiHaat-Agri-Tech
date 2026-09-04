@@ -25,7 +25,7 @@ export default function RegisterPage() {
       });
       const data = await res.json();
       if (data.success) {
-        router.push('/dashboard');
+        router.push('/');
       }
     } catch (err) {
       console.error(err);

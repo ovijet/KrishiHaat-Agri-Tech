@@ -75,7 +75,7 @@ export default function Navbar() {
   return (
     <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-emerald-100 shadow-xs">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex justify-between items-center h-16">
           {/* Brand Logo */}
           <Link href="/" className="flex items-center space-x-2.5 group">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-green-500 flex items-center justify-center text-white shadow-md shadow-emerald-500/20 group-hover:scale-105 transition-transform duration-200">
@@ -126,134 +126,15 @@ export default function Navbar() {
 
           {/* User Auth Section */}
           <div className="hidden md:flex items-center space-x-3">
-            {currentUser ? (
-              <div className="relative">
-                <button
-                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="flex items-center space-x-2 p-1.5 rounded-full hover:bg-slate-100 transition-colors border border-slate-200"
-                >
-                  <img
-                    src={currentUser.avatar}
-                    alt={currentUser.name}
-                    className="w-8 h-8 rounded-full object-cover ring-2 ring-emerald-500"
-                  />
-                  <div className="text-left hidden lg:block pr-1">
-                    <p className="text-xs font-semibold text-slate-800 line-clamp-1">
-                      {currentUser.name}
-                    </p>
-                    <span className="text-[10px] bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded-full font-medium">
-                      {currentUser.role === "admin"
-                        ? "এডমিন"
-                        : "কৃষক / বিক্রয়ক"}
-                    </span>
-                  </div>
-                  <ChevronDown className="w-4 h-4 text-slate-400" />
-                </button>
-
-                {/* User Dropdown */}
-                {isDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-60 bg-white rounded-xl shadow-xl border border-slate-100 py-2 z-50 animate-in fade-in zoom-in-95">
-                    <div className="px-4 py-2.5 border-b border-slate-100">
-                      <p className="text-sm font-bold text-slate-900">
-                        {currentUser.name}
-                      </p>
-                      <p className="text-xs text-slate-500">
-                        {currentUser.phone}
-                      </p>
-                      <span className="inline-block mt-1 text-[11px] bg-emerald-50 text-emerald-700 font-semibold px-2 py-0.5 rounded-md">
-                        জেলা: {currentUser.district}
-                      </span>
-                    </div>
-
-                    <div className="py-1">
-                      <Link
-                        href="/dashboard"
-                        onClick={() => setIsDropdownOpen(false)}
-                        className="flex items-center space-x-2 px-4 py-2 text-sm text-slate-700 hover:bg-emerald-50 hover:text-emerald-700"
-                      >
-                        <LayoutDashboard className="w-4 h-4 text-emerald-600" />
-                        <span>ইউজার ড্যাশবোর্ড</span>
-                      </Link>
-
-                      {currentUser.role === "admin" && (
-                        <Link
-                          href="/dashboard/admin"
-                          onClick={() => setIsDropdownOpen(false)}
-                          className="flex items-center space-x-2 px-4 py-2 text-sm text-amber-700 hover:bg-amber-50"
-                        >
-                          <Shield className="w-4 h-4 text-amber-600" />
-                          <span>এডমিন প্যানেল</span>
-                        </Link>
-                      )}
-
-                      <Link
-                        href="/dashboard/profile"
-                        onClick={() => setIsDropdownOpen(false)}
-                        className="flex items-center space-x-2 px-4 py-2 text-sm text-slate-700 hover:bg-emerald-50 hover:text-emerald-700"
-                      >
-                        <User className="w-4 h-4 text-emerald-600" />
-                        <span>আমার প্রোফাইল</span>
-                      </Link>
-                    </div>
-
-                    {/* Quick Demo Switcher */}
-                    <div className="px-3 py-2 bg-slate-50 border-t border-b border-slate-100 my-1">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
-                        ডেমো রোল পরিবর্তন করুন
-                      </p>
-                      <div className="flex space-x-2">
-                        <button
-                          onClick={() => handleRoleSwitch("farmer")}
-                          className={`flex-1 text-xs py-1 rounded font-medium ${
-                            currentUser.role === "farmer"
-                              ? "bg-emerald-600 text-white"
-                              : "bg-white border text-slate-600 hover:bg-slate-100"
-                          }`}
-                        >
-                          কৃষক
-                        </button>
-                        <button
-                          onClick={() => handleRoleSwitch("admin")}
-                          className={`flex-1 text-xs py-1 rounded font-medium ${
-                            currentUser.role === "admin"
-                              ? "bg-amber-600 text-white"
-                              : "bg-white border text-slate-600 hover:bg-slate-100"
-                          }`}
-                        >
-                          এডমিন
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="pt-1">
-                      <Link
-                        href="/login"
-                        onClick={() => setIsDropdownOpen(false)}
-                        className="flex items-center space-x-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50"
-                      >
-                        <LogOut className="w-4 h-4" />
-                        <span>লগআউট করুন</span>
-                      </Link>
-                    </div>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="flex items-center space-x-2">
-                <Link
-                  href="/login"
-                  className="px-4 py-2 text-sm font-semibold text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors"
-                >
-                  লগইন
-                </Link>
-                <Link
-                  href="/register"
-                  className="px-4 py-2 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-xs transition-colors"
-                >
-                  রেজিস্ট্রেশন
-                </Link>
-              </div>
-            )}
+            <div>
+              <Link
+                href="/login"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="border flex border-emerald-600 px-3 text-emerald-700 font-semibold rounded-lg text-center py-2"
+              >
+               <User/> প্রবেশ করুন
+              </Link>
+            </div>
           </div>
 
           {/* Mobile Menu Toggle */}
