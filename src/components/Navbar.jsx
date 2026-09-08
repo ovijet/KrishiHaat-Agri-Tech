@@ -12,11 +12,11 @@ import {
   User,
   LogOut,
   LayoutDashboard,
-  Shield,
   Menu,
   X,
   ChevronDown,
 } from "lucide-react";
+import { authClient } from "@/lib/auth-client";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -25,15 +25,22 @@ export default function Navbar() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  const { data: session } = authClient.useSession();
+  const user = session?.user;
+  console.log(user, "xxxxxxxxxxxxxxx");
+
   const fetchUser = async () => {
     try {
-      const res = await fetch("/api/auth");
+      const res = await fetch("/api/auth/me");
       const data = await res.json();
-      if (data.success) {
+      if (data.success && data.user) {
         setCurrentUser(data.user);
+      } else {
+        setCurrentUser(null);
       }
     } catch (e) {
       console.error(e);
+      setCurrentUser(null);
     }
   };
 
@@ -41,27 +48,16 @@ export default function Navbar() {
     fetchUser();
   }, [pathname]);
 
-  // const handleRoleSwitch = async (role) => {
-  //   try {
-  //     const res = await fetch('/api/auth', {
-  //       method: 'POST',
-  //       headers: { 'Content-Type': 'application/json' },
-  //       body: JSON.stringify({ role })
-  //     });
-  //     const data = await res.json();
-  //     if (data.success) {
-  //       setCurrentUser(data.user);
-  //       setIsDropdownOpen(false);
-  //       if (role === 'admin') {
-  //         router.push('/dashboard/admin');
-  //       } else {
-  //         router.push('/dashboard');
-  //       }
-  //     }
-  //   } catch (e) {
-  //     console.error(e);
-  //   }
-  // };
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+      setCurrentUser(null);
+      setIsDropdownOpen(false);
+      window.location.href = "/";
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   const navLinks = [
     { name: "হোম", href: "/", icon: Sprout },
@@ -126,15 +122,77 @@ export default function Navbar() {
 
           {/* User Auth Section */}
           <div className="hidden md:flex items-center space-x-3">
-            <div>
-              <Link
-                href="/login"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="border flex border-emerald-600 px-3 text-emerald-700 font-semibold rounded-lg text-center py-2"
-              >
-               <User/> প্রবেশ করুন
-              </Link>
-            </div>
+            {currentUser ? (
+              <div className="relative">
+                <button
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  className="flex items-center space-x-2 p-1.5 rounded-xl border border-slate-200 hover:border-emerald-300 bg-slate-50 transition-colors"
+                >
+                  <img
+                    src={
+                      currentUser.avatar ||
+                      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80"
+                    }
+                    alt={currentUser.name}
+                    className="w-8 h-8 rounded-lg object-cover"
+                  />
+                  <div className="text-left text-xs">
+                    <p className="font-bold text-slate-900 line-clamp-1">
+                      {currentUser.name}
+                    </p>
+                    <p className="text-[10px] text-emerald-600 font-semibold uppercase">
+                      {currentUser.role === "admin"
+                        ? "এডমিন"
+                        : currentUser.role === "buyer"
+                          ? "ক্রেতা"
+                          : "কৃষক"}
+                    </p>
+                  </div>
+                  <ChevronDown className="w-4 h-4 text-slate-400" />
+                </button>
+
+                {/* Dropdown menu */}
+                {isDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-xl border border-slate-100 py-2 z-50 space-y-1">
+                    <Link
+                      href={
+                        currentUser.role === "admin"
+                          ? "/dashboard/admin"
+                          : "/dashboard"
+                      }
+                      onClick={() => setIsDropdownOpen(false)}
+                      className="flex items-center space-x-2 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-emerald-50 hover:text-emerald-700"
+                    >
+                      <LayoutDashboard className="w-4 h-4 text-emerald-600" />
+                      <span>ড্যাশবোর্ড</span>
+                    </Link>
+                    <button
+                      onClick={handleLogout}
+                      className="w-full flex items-center space-x-2 px-4 py-2 text-xs font-semibold text-red-600 hover:bg-red-50 text-left"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      <span>লগআউট</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="flex items-center space-x-2">
+                <Link
+                  href="/login"
+                  className="flex items-center space-x-1 border border-emerald-600 px-3.5 py-2 text-emerald-700 font-semibold rounded-lg text-xs hover:bg-emerald-50 transition-colors"
+                >
+                  <User className="w-4 h-4" />
+                  <span>প্রবেশ করুন</span>
+                </Link>
+                <Link
+                  href="/register"
+                  className="bg-emerald-600 text-white px-3.5 py-2 font-semibold rounded-lg text-xs hover:bg-emerald-700 transition-colors shadow-xs"
+                >
+                  নিবন্ধন
+                </Link>
+              </div>
+            )}
           </div>
 
           {/* Mobile Menu Toggle */}
@@ -179,43 +237,66 @@ export default function Navbar() {
             <span>ফসল বিক্রি করুন</span>
           </Link>
           {currentUser ? (
-            <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <img
-                  src={currentUser.avatar}
-                  alt=""
-                  className="w-9 h-9 rounded-full object-cover"
-                />
-                <div>
-                  <p className="text-sm font-bold text-slate-900">
-                    {currentUser.name}
-                  </p>
-                  <p className="text-xs text-slate-500">
-                    {currentUser.role === "admin" ? "এডমিন" : "কৃষক"}
-                  </p>
+            <div className="pt-3 border-t border-slate-100 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <img
+                    src={
+                      currentUser.avatar ||
+                      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80"
+                    }
+                    alt=""
+                    className="w-9 h-9 rounded-full object-cover"
+                  />
+                  <div>
+                    <p className="text-sm font-bold text-slate-900">
+                      {currentUser.name}
+                    </p>
+                    <p className="text-xs text-slate-500">
+                      {currentUser.role === "admin"
+                        ? "এডমিন"
+                        : currentUser.role === "buyer"
+                          ? "ক্রেতা"
+                          : "কৃষক"}
+                    </p>
+                  </div>
                 </div>
+                <Link
+                  href={
+                    currentUser.role === "admin"
+                      ? "/dashboard/admin"
+                      : "/dashboard"
+                  }
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="px-3 py-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 rounded-lg"
+                >
+                  ড্যাশবোর্ড
+                </Link>
               </div>
-              <Link
-                href="/dashboard"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="px-3 py-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 rounded-lg"
+              <button
+                onClick={() => {
+                  handleLogout();
+                  setIsMobileMenuOpen(false);
+                }}
+                className="w-full flex items-center justify-center space-x-2 py-2.5 text-xs font-bold text-red-600 bg-red-50 rounded-xl"
               >
-                ড্যাশবোর্ড
-              </Link>
+                <LogOut className="w-4 h-4" />
+                <span>লগআউট করুন</span>
+              </button>
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-2 pt-2">
               <Link
                 href="/login"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="text-center py-2 border border-emerald-600 text-emerald-700 font-semibold rounded-lg"
+                className="text-center py-2 border border-emerald-600 text-emerald-700 font-semibold rounded-lg text-sm"
               >
                 লগইন
               </Link>
               <Link
                 href="/register"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="text-center py-2 bg-emerald-600 text-white font-semibold rounded-lg"
+                className="text-center py-2 bg-emerald-600 text-white font-semibold rounded-lg text-sm"
               >
                 রেজিস্টার
               </Link>

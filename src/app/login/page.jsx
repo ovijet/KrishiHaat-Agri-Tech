@@ -3,67 +3,37 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import {
-  Sprout,
-  Phone,
-  Lock,
-  ArrowRight,
-  Shield,
-  User,
-  CheckCircle2,
-} from "lucide-react";
+import { Sprout, Phone, Lock, ArrowRight, AlertCircle, Mail } from "lucide-react";
+import { FcGoogle } from "react-icons/fc";
+import { authClient } from "@/lib/auth-client";
+import { toast } from "react-toastify";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [role, setRole] = useState("farmer");
-  const [phone, setPhone] = useState("");
-  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    try {
-      const res = await fetch("/api/auth", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ role, phone }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        if (role === "admin") {
-          router.push("/dashboard/admin");
-        } else {
-          router.push("/dashboard");
-        }
-      }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+    setError("");
 
-  const handleQuickDemoLogin = async (demoRole) => {
-    setLoading(true);
-    try {
-      const res = await fetch("/api/auth", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ role: demoRole }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        if (demoRole === "admin") {
-          router.push("/dashboard/admin");
-        } else {
-          router.push("/dashboard");
-        }
-      }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
+    const formData = new FormData(e.target);
+    const userData = Object.fromEntries(formData.entries());
+    console.log("Login data:", userData);
+
+    const { data, error } = await authClient.signIn.email({
+      ...userData,
+    });
+
+    if (error) {
+      toast.error(error?.message || "error");
+      return;
+    }
+
+    if (data) {
+      toast("Signup successful");
+      router.push("/");
     }
   };
 
@@ -86,20 +56,36 @@ export default function LoginPage() {
           </p>
         </div>
 
+        {error && (
+          <div className="p-3 bg-red-50 border border-red-200 rounded-xl flex items-center gap-2 text-red-700 text-xs font-semibold">
+            <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
+            <span>{error}</span>
+          </div>
+        )}
+
+        <div>
+          <button
+            type="button"
+            className="w-full py-3.5 border border-slate-400 hover:border-yellow-400 disabled:bg-emerald-300 text-slate-700 font-bold text-sm rounded-xl shadow-md transition-colors flex items-center justify-center gap-2"
+          >
+            <FcGoogle className="text-2xl" />
+            <span>Google দিয়ে প্রবেশ করুন</span>
+          </button>
+        </div>
+
         {/* Form */}
         <form onSubmit={handleLoginSubmit} className="space-y-4">
+          {/* Email */}
           <div>
             <label className="block text-xs font-bold text-slate-700 mb-1">
-              মোবাইল নম্বর:
+              ইমেইল (ঐচ্ছিক)
             </label>
             <div className="relative">
-              <Phone className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-400" />
+              <Mail className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-400" />
               <input
-                type="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="01700000000"
-                required
+                name="email"
+                type="email"
+                placeholder="your@email.com"
                 className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
               />
             </div>
@@ -112,9 +98,8 @@ export default function LoginPage() {
             <div className="relative">
               <Lock className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-400" />
               <input
+                name="password"
                 type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
                 required
                 className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
